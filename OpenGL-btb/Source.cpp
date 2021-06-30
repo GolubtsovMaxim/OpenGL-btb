@@ -1,10 +1,27 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <string>
+#include <fstream>
 
 #define numVAOs 1
 GLuint renderingProgram;
 GLuint vao[numVAOs];
+
+std::string readShaderSource(const char* filePath)
+{
+	std::string content;
+	std::ifstream fileStream(filePath, std::ios::in);
+	std::string line = "";
+
+	while (!fileStream.eof()) {
+		getline(fileStream, line);
+		content.append(line + "\n");
+	}
+	fileStream.close();
+	return content;
+
+}
 
 void printShaderLog(GLuint shader)
 {
@@ -61,23 +78,27 @@ GLuint createShaderProgram()
 	GLint fragCompiled;
 	GLint linked;
 
-	const char* vshaderSource =
-		"#version 430 \n"
-		"void main(void) \n"
-		"{ gl_Position = vec4(0.0, 0.0, 0.0, 1.0); }";
+	//const char* vshaderSource =
+	//	"#version 430 \n"
+	//	"void main(void) \n"
+	//	"{ gl_Position = vec4(0.0, 0.0, 0.0, 1.0); }";
 
-	const char* fshaderSource =
-		"#version 430 \n"
-		"out vec4 color; \n"
-		"void main(void) \n"
-		"{ if (gl_FragCoord.x < 300) color = vec4(1.0, 0.0, 0.0, 1.0); else color = vec4(0.0, 0.0, 1.0, 1.0); }";
-		//"{ color = vec4(0.0, 0.0, 1.0, 1.0); }";
+	//const char* fshaderSource =
+	//	"#version 430 \n"
+	//	"out vec4 color; \n"
+	//	"void main(void) \n"
+	//	"{ if (gl_FragCoord.x < 300) color = vec4(1.0, 0.0, 0.0, 1.0); else color = vec4(0.0, 0.0, 1.0, 1.0); }";
+	std::string	VertexShaderSrc = readShaderSource("Shaders/VertexShader.glsl");
+	std::string FragmentShaderSrc = readShaderSource("Shaders/FragmentShader.glsl");
 	
 	GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
+
+	auto VS_src = VertexShaderSrc.c_str();
+	auto FS_src = FragmentShaderSrc.c_str();
 	
-	glShaderSource(vShader, 1, &vshaderSource, nullptr);
-	glShaderSource(fShader, 1, &fshaderSource, nullptr);
+	glShaderSource(vShader, 1, &VS_src, nullptr);
+	glShaderSource(fShader, 1, &FS_src, nullptr);
 	
 	glCompileShader(vShader);
 	
