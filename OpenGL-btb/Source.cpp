@@ -78,16 +78,6 @@ GLuint createShaderProgram()
 	GLint fragCompiled;
 	GLint linked;
 
-	//const char* vshaderSource =
-	//	"#version 430 \n"
-	//	"void main(void) \n"
-	//	"{ gl_Position = vec4(0.0, 0.0, 0.0, 1.0); }";
-
-	//const char* fshaderSource =
-	//	"#version 430 \n"
-	//	"out vec4 color; \n"
-	//	"void main(void) \n"
-	//	"{ if (gl_FragCoord.x < 300) color = vec4(1.0, 0.0, 0.0, 1.0); else color = vec4(0.0, 0.0, 1.0, 1.0); }";
 	std::string	VertexShaderSrc = readShaderSource("Shaders/VertexShader.glsl");
 	std::string FragmentShaderSrc = readShaderSource("Shaders/FragmentShader.glsl");
 	
@@ -146,8 +136,6 @@ void init(GLFWwindow* window)
 
 void display(GLFWwindow* window, double currentTime)
 {
-	/*glClearColor(1.0, 0.0, 0.0, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT);*/
 	glUseProgram(renderingProgram);
 	glPointSize(30.0f);
 	glDrawArrays(GL_POINTS, 0, 1);
