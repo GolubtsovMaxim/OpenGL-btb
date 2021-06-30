@@ -6,12 +6,14 @@
 GLuint renderingProgram;
 GLuint vao[numVAOs];
 
-void printShaderLog(GLuint shader) {
+void printShaderLog(GLuint shader)
+{
 	int len = 0;
 	int chWrittn = 0;
 	char* log;
 	
 	glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &len);
+
 	if (len > 0) 
 	{
 		log = (char*)malloc(len);
@@ -21,12 +23,14 @@ void printShaderLog(GLuint shader) {
 	}
 }
 
-void printProgramLog(int prog) {
+void printProgramLog(int prog)
+{
 	int len = 0;
 	int chWrittn = 0;
 	char* log;
 	
 	glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &len);
+
 	if (len > 0) 
 	{
 		log = (char*)malloc(len);
@@ -36,7 +40,8 @@ void printProgramLog(int prog) {
 	}
 }
 
-bool checkOpenGLError() {
+bool checkOpenGLError()
+{
 	bool foundError = false;
 	int glErr = glGetError();
 	
@@ -78,7 +83,8 @@ GLuint createShaderProgram()
 	
 	checkOpenGLError();
 	glGetShaderiv(vShader, GL_COMPILE_STATUS, &vertCompiled);
-	if (vertCompiled != 1) {
+	if (vertCompiled != 1) 
+	{
 		std::cout << "vertex compilation failed" << std::endl;
 		printShaderLog(vShader);
 	}
@@ -87,7 +93,8 @@ GLuint createShaderProgram()
 
 	checkOpenGLError();
 	glGetShaderiv(fShader, GL_COMPILE_STATUS, &fragCompiled);
-	if (fragCompiled != 1) {
+	if (fragCompiled != 1) 
+	{
 		std::cout << "fragment compilation failed" << std::endl;
 		printShaderLog(fShader);
 	}
@@ -100,7 +107,8 @@ GLuint createShaderProgram()
 
 	checkOpenGLError();
 	glGetProgramiv(vfProgram, GL_LINK_STATUS, &linked);
-	if (linked != 1) {
+	if (linked != 1) 
+	{
 		std::cout << "linking failed" << std::endl;
 		printProgramLog(vfProgram);
 	}
