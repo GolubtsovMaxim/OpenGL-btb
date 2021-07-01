@@ -72,6 +72,9 @@ void init(GLFWwindow* window)
 
 float x = 0.0f; // location of triangle on x axis
 float inc = 0.01f; // offset for moving the triangle
+static float radius = 30.f;
+float d_radius = 0.5f;
+static bool swap = false;
 
 void display(GLFWwindow* window, double currentTime)
 {
@@ -81,14 +84,31 @@ void display(GLFWwindow* window, double currentTime)
 	
 	glUseProgram(renderingProgram);
 	
-	x += inc; // move the triangle along x axis
-	if (x > 1.0f) inc = -0.01f; // switch to moving the triangle to the left
-	if (x < -1.0f) inc = 0.01f;
+	//x += inc; // move the triangle along x axis
+	//if (x > 1.0f) inc = -0.01f; // switch to moving the triangle to the left
+	//if (x < -1.0f) inc = 0.01f;
 
-	GLuint offsetLoc = glGetUniformLocation(renderingProgram, "offset"); // get ptr to "offset"
-	glProgramUniform1f(renderingProgram, offsetLoc, x); // send value in "x" to "offset"
-	
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	//GLuint offsetLoc = glGetUniformLocation(renderingProgram, "offset"); // get ptr to "offset"
+	//glProgramUniform1f(renderingProgram, offsetLoc, x); // send value in "x" to "offset"
+	if (radius < 250.f && !swap)
+	{
+		radius += d_radius;
+	}
+	if (radius >= 250.f)
+	{
+		swap = true;
+	}
+	if (radius > 50.f && swap)
+	{
+		radius -= d_radius;
+	}
+	if (radius <= 50.f)
+	{
+		swap = false;
+	}
+
+	glPointSize(radius);
+	glDrawArrays(GL_POINTS, 0, 1);
 
 	
 }
