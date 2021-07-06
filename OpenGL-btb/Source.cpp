@@ -70,7 +70,7 @@ void init(GLFWwindow* window)
 	glBindVertexArray(vao[0]);
 }
 
-float x = 0.0f; // location of triangle on x axis
+float x = 5.0f; // location of triangle on x axis
 float inc = 0.01f; // offset for moving the triangle
 
 void display(GLFWwindow* window, double currentTime)
@@ -82,8 +82,8 @@ void display(GLFWwindow* window, double currentTime)
 	glUseProgram(renderingProgram);
 	
 	x += inc; // move the triangle along x axis
-	if (x > 1.0f) inc = -0.01f; // switch to moving the triangle to the left
-	if (x < -1.0f) inc = 0.01f;
+	//if (x > 1.0f) inc = -0.01f; // switch to moving the triangle to the left
+	//if (x < -1.0f) inc = 0.01f;
 
 	GLuint offsetLoc = glGetUniformLocation(renderingProgram, "offset"); // get ptr to "offset"
 	glProgramUniform1f(renderingProgram, offsetLoc, x); // send value in "x" to "offset"
