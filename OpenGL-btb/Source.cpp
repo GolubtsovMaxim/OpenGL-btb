@@ -31,9 +31,9 @@ GLuint renderingProgram;
 GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
-GLuint MV_loc, Proj_loc;
+GLuint MV_loc, Proj_loc, v_loc, TF_loc;
 int width, height;
-float aspect;
+float aspect, timeFactor;
 glm::mat4 p_mat, v_mat, m_mat, mv_mat, r_mat, t_mat;
 
 //Camera* p_camera = new Camera(0.0f, 0.0f, 8.0f);
@@ -47,7 +47,7 @@ void setupVertices()
 		-1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0
 	};
 
-	glGenVertexArrays(1, vao);
+	glGenVertexArrays(numVAOs, vao);
 	glBindVertexArray(vao[0]);
 	glGenBuffers(numVBOs, vbo);
 
@@ -114,60 +114,48 @@ GLuint createShaderProgram()
 void init(GLFWwindow* window)
 {
 	renderingProgram = createShaderProgram();
-	camera_x = 0.0f; camera_y = 0.0f; camera_z = -15.0f;
-	cube_loc_x = 0.0f; cube_loc_y = -2.0f; cube_loc_z = 0.0f;
-	setupVertices();
+	glfwGetFramebufferSize(window, &width, &height);
+	camera_x = 0.0f; camera_y = 0.0f; camera_z = 20.0f;
+	cube_loc_x = 0.0f; cube_loc_y = 0.0f; cube_loc_z = 0.0f;
+	
 	//glGenVertexArrays(numVAOs, vao);
 	//glBindVertexArray(vao[0]);
+	
+	aspect = static_cast<float>(width) / static_cast<float>(height);
+	p_mat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
+	setupVertices();
+	
 }
 
 void display(GLFWwindow* window, double currentTime)
 {
 	glClear(GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glUseProgram(renderingProgram);
-	
-	MV_loc = glGetUniformLocation(renderingProgram, "MV_matrix");
-	Proj_loc = glGetUniformLocation(renderingProgram, "Proj_matrix");
 
-	glfwGetFramebufferSize(window, &width, &height);
-	aspect = static_cast<float> (width/height);
+	v_mat = glm::translate(glm::mat4(1.0f), glm::vec3(-camera_x, -camera_y, -camera_z));
 
-	float tf = 0;
-	for (unsigned i = 0; i < 24; i++)
-	{
-		tf = static_cast<float>(currentTime) + static_cast<float>(i);
-		t_mat = glm::translate(glm::mat4(1.0f),
-			glm::vec3(sin(0.35f * tf) * 2.0f, cos(0.52f * tf) * 2.0f, sin(0.7f * tf) * 2.0f));
-		r_mat = glm::rotate(glm::mat4(1.0f), 1.75f * tf, glm::vec3(0.0f, 1.0f, 0.0f));
+	v_loc = glGetUniformLocation(renderingProgram, "v_matrix");
+	Proj_loc = glGetUniformLocation(renderingProgram, "proj_matrix");
 
-		p_mat = glm::perspective(1.04f, aspect, 0.1f, 1000.f);
-
-		v_mat = glm::translate(glm::mat4(1.0f), glm::vec3(camera_x, camera_y, camera_z));
-		//m_mat = glm::translate(glm::mat4(1.0f), glm::vec3(cube_loc_x, cube_loc_y, cube_loc_z));
-		m_mat = t_mat * r_mat;
-		mv_mat = v_mat * m_mat;
+	glUniformMatrix4fv(v_loc, 1, GL_FALSE, glm::value_ptr(v_mat));
+	glUniformMatrix4fv(Proj_loc, 1, GL_FALSE, glm::value_ptr(p_mat));
 
 
+	timeFactor = static_cast<float>(currentTime);
+	TF_loc = glGetUniformLocation(renderingProgram, "tf");
+	glUniform1f(TF_loc, static_cast<float>(timeFactor));
 
-		// copy Perspective and MV matrices to corresponding uniform variables
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, nullptr);
+	glEnableVertexAttribArray(0);
 
-		glUniformMatrix4fv(MV_loc, 1, GL_FALSE, glm::value_ptr(mv_mat));
-		glUniformMatrix4fv(Proj_loc, 1, GL_FALSE, glm::value_ptr(p_mat));
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
 
-		// associate VBO with the corresponding vertex attribute in the vertex shader
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-		glEnableVertexAttribArray(0);
-
-		// adjust OpenGL settings and draw model
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
-
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-	}
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 36, 10);
 }
 
 int main() {

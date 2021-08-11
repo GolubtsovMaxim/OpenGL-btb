@@ -3,8 +3,8 @@ out vec4 color;
 
 in vec4 varyingColor;
 
-uniform mat4 MV_matrix;
-uniform mat4 Proj_matrix;
+uniform mat4 mv_matrix;
+uniform mat4 proj_matrix;
 
 void main(void)
 { 
