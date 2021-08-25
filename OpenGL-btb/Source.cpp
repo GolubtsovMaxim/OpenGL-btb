@@ -26,12 +26,13 @@ struct CubeLoc
 
 float camera_x, camera_y, camera_z;
 float cube_loc_x, cube_loc_y, cube_loc_z;
+float pyra_loc_x, pyra_loc_y, pyra_loc_z;
 
 GLuint renderingProgram;
 GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
-GLuint MV_loc, Proj_loc;
+GLuint mv_loc, proj_loc;
 int width, height;
 float aspect;
 glm::mat4 p_mat, v_mat, m_mat, mv_mat, r_mat, t_mat;
@@ -42,17 +43,45 @@ glm::mat4 p_mat, v_mat, m_mat, mv_mat, r_mat, t_mat;
 
 void setupVertices()
 {
-	float vertexPositions[108] =
+	float cube_vertexPositions[108] =
 	{
 		-1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0
 	};
 
-	glGenVertexArrays(1, vao);
+	float pyramid_vertexPositions[54] =
+	{
+		-1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // front face
+		1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // right face
+		1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, // back face
+		-1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, // left face
+		-1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, // base – left front
+		1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f // base – left front
+	};
+
+	/*FOR ALL OBJECTS*/
+	
+	/* generate vertex array object names */
+	glGenVertexArrays(numVAOs, vao);
+
+	/* bind a vertex array object */
 	glBindVertexArray(vao[0]);
+
+	/* generate buffer object names */
 	glGenBuffers(numVBOs, vbo);
 
+	/*FOR ALL OBJECTS -- END*/
+	
+	/* bind a named buffer object */
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
+
+	/* creates and initializes a buffer object's data store */
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertexPositions), cube_vertexPositions, GL_STATIC_DRAW);
+
+	/* bind a named buffer object */
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+
+	/* creates and initializes a buffer object's data store */
+	glBufferData(GL_ARRAY_BUFFER, sizeof(pyramid_vertexPositions), pyramid_vertexPositions, GL_STATIC_DRAW);
 }
 
 
@@ -114,11 +143,11 @@ GLuint createShaderProgram()
 void init(GLFWwindow* window)
 {
 	renderingProgram = createShaderProgram();
-	camera_x = 0.0f; camera_y = 0.0f; camera_z = -15.0f;
+	camera_x = 0.0f; camera_y = 0.0f; camera_z = -10.0f;
 	cube_loc_x = 0.0f; cube_loc_y = -2.0f; cube_loc_z = 0.0f;
+	pyra_loc_x = 5.f; pyra_loc_y = 5.f; pyra_loc_z = -5.f;
+
 	setupVertices();
-	//glGenVertexArrays(numVAOs, vao);
-	//glBindVertexArray(vao[0]);
 }
 
 void display(GLFWwindow* window, double currentTime)
@@ -128,46 +157,65 @@ void display(GLFWwindow* window, double currentTime)
 
 	glUseProgram(renderingProgram);
 	
-	MV_loc = glGetUniformLocation(renderingProgram, "MV_matrix");
-	Proj_loc = glGetUniformLocation(renderingProgram, "Proj_matrix");
+	mv_loc = glGetUniformLocation(renderingProgram, "mv_matrix");
+	proj_loc = glGetUniformLocation(renderingProgram, "proj_matrix");
 
 	glfwGetFramebufferSize(window, &width, &height);
-	aspect = static_cast<float> (width/height);
+	aspect = static_cast<float> (width / height);
 
-	float tf = 0;
-	for (unsigned i = 0; i < 24; i++)
-	{
-		tf = static_cast<float>(currentTime) + static_cast<float>(i);
-		t_mat = glm::translate(glm::mat4(1.0f),
-			glm::vec3(sin(0.35f * tf) * 2.0f, cos(0.52f * tf) * 2.0f, sin(0.7f * tf) * 2.0f));
-		r_mat = glm::rotate(glm::mat4(1.0f), 1.75f * tf, glm::vec3(0.0f, 1.0f, 0.0f));
+	const float tf = static_cast<float>(currentTime);
 
-		p_mat = glm::perspective(1.04f, aspect, 0.1f, 1000.f);
+	//draw the cube (use buffer #0)
+	v_mat = glm::translate(glm::mat4(1.0f), glm::vec3(camera_x, camera_y, camera_z));
+	m_mat = glm::translate(glm::mat4(1.0f), glm::vec3(cube_loc_x, cube_loc_y, cube_loc_z));
+	mv_mat = v_mat * m_mat;
 
-		v_mat = glm::translate(glm::mat4(1.0f), glm::vec3(camera_x, camera_y, camera_z));
-		//m_mat = glm::translate(glm::mat4(1.0f), glm::vec3(cube_loc_x, cube_loc_y, cube_loc_z));
-		m_mat = t_mat * r_mat;
-		mv_mat = v_mat * m_mat;
+	// copy Perspective and MV matrices to corresponding uniform variables
 
+	glUniformMatrix4fv(mv_loc, 1, GL_FALSE, glm::value_ptr(mv_mat));
+	glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(p_mat));
 
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+	glEnableVertexAttribArray(0);
 
-		// copy Perspective and MV matrices to corresponding uniform variables
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		glUniformMatrix4fv(MV_loc, 1, GL_FALSE, glm::value_ptr(mv_mat));
-		glUniformMatrix4fv(Proj_loc, 1, GL_FALSE, glm::value_ptr(p_mat));
+	//draw the pyra (use buffer #1)
 
-		// associate VBO with the corresponding vertex attribute in the vertex shader
+	//m_mat = glm::translate(glm::mat4(1.0f), glm::vec3(cube_loc_x, cube_loc_y, cube_loc_z));
+	//mv_mat = v_mat * m_mat;
 
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-		glEnableVertexAttribArray(0);
+	//t_mat = glm::translate(glm::mat4(1.0f),
+			//glm::vec3(sin(0.35f * tf) * 2.0f, cos(0.52f * tf) * 2.0f, sin(0.7f * tf) * 2.0f));
+	//r_mat = glm::rotate(glm::mat4(1.0f), 1.75f * tf, glm::vec3(0.0f, 1.0f, 0.0f));
 
-		// adjust OpenGL settings and draw model
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
+	p_mat = glm::perspective(1.04f, aspect, 0.1f, 1000.f);
 
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-	}
+	
+	//m_mat = glm::translate(glm::mat4(1.0f), glm::vec3(cube_loc_x, cube_loc_y, cube_loc_z));
+	//m_mat = t_mat * r_mat;
+	
+
+	m_mat = glm::translate(glm::mat4(1.0f), glm::vec3(pyra_loc_x, pyra_loc_y, pyra_loc_z));
+	mv_mat = v_mat * m_mat;
+	glUniformMatrix4fv(mv_loc, 1, GL_FALSE, glm::value_ptr(mv_mat));
+	glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(p_mat));
+
+	
+	// associate VBO with the corresponding vertex attribute in the vertex shader
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+	glEnableVertexAttribArray(0);
+
+	//// adjust OpenGL settings and draw model
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glDrawArrays(GL_TRIANGLES, 0, 18);
+
 }
 
 int main() {
